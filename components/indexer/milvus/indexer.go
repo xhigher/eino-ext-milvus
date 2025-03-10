@@ -132,10 +132,6 @@ func NewIndexer(ctx context.Context, config *IndexerConfig) (*Indexer, error) {
 		client: mc,
 	}
 
-	if config.EmbeddingConfig.UseBuiltin {
-		i.embModel = &models.NewTextEmbeddingFunction
-	}
-
 	return i, nil
 }
 
