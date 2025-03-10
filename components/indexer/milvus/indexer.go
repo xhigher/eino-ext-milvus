@@ -120,6 +120,16 @@ func NewIndexer(ctx context.Context, config *IndexerConfig) (*Indexer, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		var idx *entity.IndexIvfFlat
+		idx, err = entity.NewIndexIvfFlat(entity.COSINE, config.EmbeddingConfig.VectorDim)
+		if err != nil {
+			return nil, err
+		}
+		err = mc.CreateIndex(ctx, config.Collection, defaultFieldVector, idx, false) // only 1 shard
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		//err = mc.DropCollection(ctx, config.Collection)
 		//if err != nil {
