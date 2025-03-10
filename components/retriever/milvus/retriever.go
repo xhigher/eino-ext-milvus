@@ -66,9 +66,9 @@ type Retriever struct {
 
 func NewRetriever(ctx context.Context, config *RetrieverConfig) (*Retriever, error) {
 	if config.EmbeddingConfig.UseBuiltin && config.EmbeddingConfig.Embedding != nil {
-		return nil, fmt.Errorf("[VikingDBRetriever] no need to provide Embedding when UseBuiltin embedding is true")
+		return nil, fmt.Errorf("[MilvusRetriever] no need to provide Embedding when UseBuiltin embedding is true")
 	} else if !config.EmbeddingConfig.UseBuiltin && config.EmbeddingConfig.Embedding == nil {
-		return nil, fmt.Errorf("[VikingDBRetriever] need provide Embedding when UseBuiltin embedding is false")
+		return nil, fmt.Errorf("[MilvusRetriever] need provide Embedding when UseBuiltin embedding is false")
 	}
 
 	mc, err := client.NewClient(ctx, client.Config{
@@ -83,6 +83,11 @@ func NewRetriever(ctx context.Context, config *RetrieverConfig) (*Retriever, err
 
 	if len(config.Partition) == 0 {
 		config.Partition = defaultPartition
+	}
+
+	err = mc.LoadCollection(context.Background(), config.Collection, true)
+	if err != nil {
+		return nil, err
 	}
 
 	r := &Retriever{
