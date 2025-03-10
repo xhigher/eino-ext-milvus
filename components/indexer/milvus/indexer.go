@@ -26,6 +26,7 @@ type IndexerConfig struct {
 }
 
 type EmbeddingConfig struct {
+	UseBuiltin bool `json:"use_builtin"`
 	// ModelName 指定模型名称
 	ModelName string `json:"model_name"`
 	// UseSparse 是否返回稀疏向量
@@ -54,6 +55,12 @@ type Columns struct {
 }
 
 func NewIndexer(ctx context.Context, config *IndexerConfig) (*Indexer, error) {
+	if config.EmbeddingConfig.UseBuiltin && config.EmbeddingConfig.Embedding != nil {
+		return nil, fmt.Errorf("[MilvusDBIndexer] no need to provide Embedding when UseBuiltin embedding is true")
+	} else if !config.EmbeddingConfig.UseBuiltin && config.EmbeddingConfig.Embedding == nil {
+		return nil, fmt.Errorf("[MilvusDBIndexer] need provide Embedding when UseBuiltin embedding is false")
+	}
+
 	if config.AddBatchSize == 0 {
 		config.AddBatchSize = defaultAddBatchSize
 	}
@@ -123,6 +130,10 @@ func NewIndexer(ctx context.Context, config *IndexerConfig) (*Indexer, error) {
 	i := &Indexer{
 		config: config,
 		client: mc,
+	}
+
+	if config.EmbeddingConfig.UseBuiltin {
+		i.embModel = &models.NewTextEmbeddingFunction
 	}
 
 	return i, nil

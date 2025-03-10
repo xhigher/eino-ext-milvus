@@ -150,18 +150,19 @@ func (r *Retriever) Retrieve(ctx context.Context, query string, opts ...retrieve
 
 func (r *Retriever) customEmbedding(ctx context.Context, query string, options *retriever.Options) (vector []float32, err error) {
 	emb := options.Embedding
-	vectors, err := emb.EmbedStrings(r.makeEmbeddingCtx(ctx, emb), []string{query})
+	tempVectors, err := emb.EmbedStrings(r.makeEmbeddingCtx(ctx, emb), []string{query})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(vectors) != 1 { // unexpected
-		return nil, fmt.Errorf("[customEmbedding] invalid return length of vector, got=%d, expected=1", len(vectors))
+	if len(tempVectors) != 1 { // unexpected
+		return nil, fmt.Errorf("[customEmbedding] invalid return length of vector, got=%d, expected=1", len(tempVectors))
 	}
 
-	vector = make([]float32, len(vectors))
-	for idx := range vectors[0] {
-		vector[idx] = float32(vectors[0][idx])
+	firstVector := tempVectors[0]
+	vector = make([]float32, len(firstVector))
+	for idx := range firstVector {
+		vector[idx] = float32(firstVector[idx])
 	}
 
 	return
