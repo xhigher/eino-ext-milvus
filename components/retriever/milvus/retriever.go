@@ -57,6 +57,8 @@ type EmbeddingConfig struct {
 
 	// Embedding 使用自行指定的 embedding 替换 VikingDB 内置向量化方法
 	Embedding embedding.Embedder
+
+	VectorDim int `json:"vector_dim"`
 }
 
 type Retriever struct {
@@ -131,9 +133,9 @@ func (r *Retriever) Retrieve(ctx context.Context, query string, opts ...retrieve
 		return nil, err
 	}
 	vector := entity.FloatVector(dense)
-	sp, _ := entity.NewIndexFlatSearchParam()
+	sp, _ := entity.NewIndexIvfFlatSearchParam(r.config.EmbeddingConfig.VectorDim)
 	result, err := r.client.Search(ctx, r.config.Collection, []string{}, "", []string{defaultReturnFieldID, defaultReturnFieldContent},
-		[]entity.Vector{vector}, defaultFieldVector, entity.L2, *r.config.TopK, sp)
+		[]entity.Vector{vector}, defaultFieldVector, entity.COSINE, *r.config.TopK, sp)
 	if err != nil {
 		return nil, err
 	}
